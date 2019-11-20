@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
 
 
-my_example_nc_file = 'D:\\PyCharm\\Projects\\Test\\test\\S5P_NRTI_L2__CO_____20191117T111514_20191117T112014_10854_01_010302_20191117T115316.nc'
+my_example_nc_file = 'S5P_NRTI_L2__CO_____20191117T111514_20191117T112014_10854_01_010302_20191117T115316.nc'
 fh = Dataset(my_example_nc_file, mode='r')
 print(fh.variables.keys())
 
@@ -36,6 +36,8 @@ print(lons.shape)
 print(lats.shape)
 print(no2.shape)
 
+print(lons)
+print(lats)
 print(no2)
 
 
