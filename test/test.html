@@ -1,59 +1,84 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <style>
-      /* Always set the map height explicitly to define the size of the div
+
+<head>
+  <style>
+    /* Always set the map height explicitly to define the size of the div
        * element that contains the map. */
-      #map {
-        height: 100%;
-      }
-      /* Optional: Makes the sample page fill the window. */
-      html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="map"></div>
-    <script>
-      var map;
-      function initMap() {
-        map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 2,
-          center: {lat: -33.865427, lng: 151.196123},
-          mapTypeId: 'terrain'
-        });
+    #map {
+      height: 100%;
+    }
 
-        // Create a <script> tag and set the USGS URL as the source.
-        var script = document.createElement('script');
+    /* Optional: Makes the sample page fill the window. */
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
 
-        // This example uses a local copy of the GeoJSON stored at
-        // http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojsonp
-        script.src = 'dato.js';
-        document.getElementsByTagName('head')[0].appendChild(script);
+<body>
+  <div id="map"></div>
+  <script>
+    var map;
+    function initMap() {
+      map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 2,
+        center: { lat: -33.865427, lng: 151.196123 },
+        mapTypeId: 'terrain'
+      });
 
-      }
+      // Create a <script> tag and set the USGS URL as the source.
+      var script = document.createElement('script');
 
-      function eqfeed_callback(results) {
-        var heatmapData = [];
-        for (var i = 0; i < results.features.length; i++) {
-          var coords = results.features[i].geometry.coordinates;
-          var latLng = new google.maps.LatLng(coords[1], coords[0]);
-          heatmapData.push(latLng);
-        }
-        var heatmap = new google.maps.visualization.HeatmapLayer({
-          data: heatmapData,
-          dissipating: false,
-          map: map
-        });
-      }
+      // This example uses a local copy of the GeoJSON stored at
+      // http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojsonp
+      script.src = 'dato.js';
+      document.getElementsByTagName('head')[0].appendChild(script);
+
+    }
+
+    function eqfeed_callback(results) {
+      var heatMapData = [
+        { location: new google.maps.LatLng(37.782, -122.447), weight: 0.5 },
+        new google.maps.LatLng(37.782, -122.445),
+        { location: new google.maps.LatLng(37.782, -122.443), weight: 2 },
+        { location: new google.maps.LatLng(37.782, -122.441), weight: 3 },
+        { location: new google.maps.LatLng(37.782, -122.439), weight: 2 },
+        new google.maps.LatLng(37.782, -122.437),
+        { location: new google.maps.LatLng(37.782, -122.435), weight: 0.5 },
+
+        { location: new google.maps.LatLng(37.785, -122.447), weight: 3 },
+        { location: new google.maps.LatLng(37.785, -122.445), weight: 2 },
+        new google.maps.LatLng(37.785, -122.443),
+        { location: new google.maps.LatLng(37.785, -122.441), weight: 0.5 },
+        new google.maps.LatLng(37.785, -122.439),
+        { location: new google.maps.LatLng(37.785, -122.437), weight: 2 },
+        { location: new google.maps.LatLng(37.785, -122.435), weight: 3 },
+        { location: new google.maps.LatLng(40.445651, -3.703958), weight: 3 }
+      ];
+
+      var madrid = new google.maps.LatLng(40.445651, -3.703958);
+
+      map = new google.maps.Map(document.getElementById('map'), {
+        center: madrid,
+        zoom: 10,
+        mapTypeId: 'satellite'
+      });
+
+      var heatmap = new google.maps.visualization.HeatmapLayer({
+        data: heatMapData
+      });
+      heatmap.setMap(map);
+    }
+  </script>
+  <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC289FuX6CsZ35hEY4r17hpdiPlN73kjho&libraries=visualization&callback=initMap">
     </script>
-    <script async defer
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC289FuX6CsZ35hEY4r17hpdiPlN73kjho&libraries=visualization&callback=initMap">
-    </script>
-  </body>
+</body>
+
 </html>
 
 <!--
