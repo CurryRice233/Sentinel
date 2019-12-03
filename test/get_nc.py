@@ -1,4 +1,6 @@
 import requests
+import pickle
+import os
 import xml.etree.cElementTree as ET
 
 units = {"B": 1, "KB": 10 ** 3, "MB": 10 ** 6, "GB": 10 ** 9, "TB": 10 ** 12}
@@ -16,26 +18,32 @@ def sizeof_fmt(num, suffix='B'):
         num /= 1024.0
     return "%.1f%s%s" % (num, 'Yi', suffix)
 
+def get_cookies():
+    login = requests.post("https://s5phub.copernicus.eu/dhus/login",data={'login_username': 's5pguest', 'login_password': 's5pguest'})
+    cookies = {'dhusAuth': '13907c0568f18567a221414d76456f78', 'dhusIntegrity': login.cookies['dhusIntegrity']}
+    f = open('./cookies', 'wb')
+    pickle.dump(cookies, f)
+    f.close()
 
 url = 'https://s5phub.copernicus.eu/dhus/search?q=(footprint:"Intersects(POLYGON((-29.812190777585087 26.577078786569615,69.10491090874537 26.577078786569615,69.10491090874537 71.10236152833656,-29.812190777585087 71.10236152833656,-29.812190777585087 26.577078786569615)))" ) AND ( (platformname:Sentinel-5 AND producttype:L2__NO2___))'
-cookies = {'dhusAuth': '13907c0568f18567a221414d76456f78', 'dhusIntegrity': 'df611facece3196043f94bf0469cc851dafadf38'}
-#print(requests.get(url, cookies=cookies).text)
 
-#tree = ET.ElementTree(file='search2.xml')
+if not os.path.exists('./cookies'):
+    get_cookies()
+cookies = pickle.load(open("./cookies", 'rb'))
 text = requests.get(url, cookies=cookies)
-text.raw.decode_content = True
-tree = ET.fromstring(text.text)
+
+if text.status_code == 401:
+    get_cookies()
+    cookies = pickle.load(open("./cookies", 'rb'))
+    text = requests.get(url, cookies=cookies)
+
+tree = ET.ElementTree(ET.fromstring(text.text))
 root = tree.getroot()
 
-'''
-for child in root:
-     print('child-tag是：',child.tag,',child.attrib：',child.attrib,',child.text：',child.text)
-     for sub in child:
-          print('sub-tag是：',sub.tag,',sub.attrib：',sub.attrib,',sub.text：',sub.text)
-'''
 entrys = root.findall("{http://www.w3.org/2005/Atom}entry")
 
 total_size = 0
+count = 0
 for entry in entrys:
     print('\n' + entry.find('{http://www.w3.org/2005/Atom}title').text)
     print(entry.find('{http://www.w3.org/2005/Atom}id').text)
@@ -43,5 +51,6 @@ for entry in entrys:
     size = entry.find('{http://www.w3.org/2005/Atom}str[@name="size"]').text
     print(size)
     total_size += parseSize(size)
+    count += 1
 
-print("\nTotal size: " + sizeof_fmt(total_size))
+print("\n"+str(count)+" Files Total size: " + sizeof_fmt(total_size))
