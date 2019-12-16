@@ -18,14 +18,25 @@ def sizeof_fmt(num, suffix='B'):
         num /= 1024.0
     return "%.1f%s%s" % (num, 'Yi', suffix)
 
+
 def get_cookies():
-    login = requests.post("https://s5phub.copernicus.eu/dhus/login",data={'login_username': 's5pguest', 'login_password': 's5pguest'})
-    cookies = {'dhusAuth': '13907c0568f18567a221414d76456f78', 'dhusIntegrity': login.cookies['dhusIntegrity']}
+    login = requests.post("https://s5phub.copernicus.eu/dhus/login",
+                          data={'login_username': 's5pguest', 'login_password': 's5pguest'})
+    cookies = {'dhusAuth': login.cookies['dhusAuth'], 'dhusIntegrity': login.cookies['dhusIntegrity']}
     f = open('./cookies', 'wb')
     pickle.dump(cookies, f)
     f.close()
 
-url = 'https://s5phub.copernicus.eu/dhus/search?q=(footprint:"Intersects(POLYGON((-29.812190777585087 26.577078786569615,69.10491090874537 26.577078786569615,69.10491090874537 71.10236152833656,-29.812190777585087 71.10236152833656,-29.812190777585087 26.577078786569615)))" ) AND ( (platformname:Sentinel-5 AND producttype:L2__NO2___))'
+
+def downloadNC(ncid):
+    r = requests.get("https://s5phub.copernicus.eu/dhus/odata/v1/Products('" + ncid + "')/$value", stream=True)
+    f = open(ncid + ".nc", "wb")
+    for chunk in r.iter_content(chunk_size=512):
+        if chunk:
+            f.write(chunk)
+
+
+url = 'https://s5phub.copernicus.eu/dhus/search?start=0&rows=50&q=(footprint:"Intersects(POLYGON((-29.812190777585087 26.577078786569615,69.10491090874537 26.577078786569615,69.10491090874537 71.10236152833656,-29.812190777585087 71.10236152833656,-29.812190777585087 26.577078786569615)))" ) AND ( (platformname:Sentinel-5 AND producttype:L2__NO2___))'
 
 if not os.path.exists('./cookies'):
     get_cookies()
@@ -53,4 +64,6 @@ for entry in entrys:
     total_size += parseSize(size)
     count += 1
 
-print("\n"+str(count)+" Files Total size: " + sizeof_fmt(total_size))
+print("\n" + str(count) + " Files Total size: " + sizeof_fmt(total_size))
+
+downloadNC("9edc6827-e58f-4c9c-a71e-ca7f10759d48")
