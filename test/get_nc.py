@@ -28,12 +28,13 @@ def get_cookies():
     f.close()
 
 
-def downloadNC(ncid):
-    r = requests.get("https://s5phub.copernicus.eu/dhus/odata/v1/Products('" + ncid + "')/$value", stream=True)
+def downloadNC(ncid, cookies):
+    r = requests.get("https://s5phub.copernicus.eu/dhus/odata/v1/Products('" + ncid + "')/$value", stream=True, cookies=cookies)
     f = open(ncid + ".nc", "wb")
     for chunk in r.iter_content(chunk_size=512):
         if chunk:
             f.write(chunk)
+    print('downloaded '+ncid)
 
 
 url = 'https://s5phub.copernicus.eu/dhus/search?start=0&rows=50&q=(footprint:"Intersects(POLYGON((-29.812190777585087 26.577078786569615,69.10491090874537 26.577078786569615,69.10491090874537 71.10236152833656,-29.812190777585087 71.10236152833656,-29.812190777585087 26.577078786569615)))" ) AND ( (platformname:Sentinel-5 AND producttype:L2__NO2___))'
@@ -66,4 +67,4 @@ for entry in entrys:
 
 print("\n" + str(count) + " Files Total size: " + sizeof_fmt(total_size))
 
-downloadNC("9edc6827-e58f-4c9c-a71e-ca7f10759d48")
+downloadNC("70ff2e67-2f91-4919-985e-e2880df493d9", cookies)
