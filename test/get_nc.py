@@ -2,6 +2,8 @@ import requests
 import pickle
 import os
 import xml.etree.cElementTree as ET
+from nc import Nc
+
 
 units = {"B": 1, "KB": 10 ** 3, "MB": 10 ** 6, "GB": 10 ** 9, "TB": 10 ** 12}
 
@@ -57,11 +59,10 @@ entrys = root.findall("{http://www.w3.org/2005/Atom}entry")
 total_size = 0
 count = 0
 for entry in entrys:
-    print('\n' + entry.find('{http://www.w3.org/2005/Atom}title').text)
-    print(entry.find('{http://www.w3.org/2005/Atom}id').text)
-    print(entry.find('{http://www.w3.org/2005/Atom}link').attrib['href'])
+    title = '\n' + entry.find('{http://www.w3.org/2005/Atom}title').text
+    ncid = entry.find('{http://www.w3.org/2005/Atom}id').text
+    link = entry.find('{http://www.w3.org/2005/Atom}link').attrib['href']
     size = entry.find('{http://www.w3.org/2005/Atom}str[@name="size"]').text
-    print(size)
     total_size += parseSize(size)
     count += 1
 

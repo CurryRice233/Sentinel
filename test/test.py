@@ -4,8 +4,12 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
+from os import listdir
+import glob
 
-
+print(listdir("./"))
+print([f for f in glob.glob("*.nc")])
+'''
 my_example_nc_file = 'S5P_NRTI_L2__CO_____20191117T111514_20191117T112014_10854_01_010302_20191117T115316.nc'
 fh = Dataset(my_example_nc_file, mode='r')
 print(fh.variables.keys())
@@ -42,7 +46,7 @@ print(no2.shape)
 print(time_utc)
 print(netCDF4.num2date(time[:], time.units))
 print(time.units.split("since")[1].strip())
-
+'''
 
 
 '''
