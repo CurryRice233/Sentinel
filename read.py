@@ -17,3 +17,4 @@ def save_to_csv(file):
     data['Data'].replace('', numpy.nan, inplace=True)
     data.dropna(subset=['Data'], inplace=True)
     data.to_csv(str(time.date()) + ".csv", index=False, mode='a')
+    nc.close()

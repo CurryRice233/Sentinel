@@ -27,6 +27,7 @@ if text.status_code == 401:
     cookies = pickle.load(open("./cookies", 'rb'))
     text = requests.get(url, cookies=cookies)
 
+# text to class nc
 tree = ET.ElementTree(ET.fromstring(text.text))
 root = tree.getroot()
 entries = root.findall("{http://www.w3.org/2005/Atom}entry")
@@ -49,24 +50,28 @@ for entry in entries:
 
 print("\n" + str(count) + " Total files size: " + utils.sizeof_fmt(total_size))
 
+# download nc file
 conn = sqlite3.connect('./download.db')
-cursor = conn.cursor()
-dao.create_download_table(cursor)
+dao.create_download_table(conn)
 
 total_size = 0
 count = 0
 for file in files:
-    if not dao.exist_nc(cursor, file.ncid) and file.date.date() == datetime.datetime.today().date():
+    if not dao.exist_nc(conn, file.ncid) and file.date.date() == datetime.datetime.today().date():
         total_size += utils.parse_size(file.size)
         count += 1
 print("Will download " + str(count) + " files with " + utils.sizeof_fmt(total_size))
 for file in files:
-    if not dao.exist_nc(cursor, file.ncid) and file.date.date() == datetime.datetime.today().date():
+    if not dao.exist_nc(conn, file.ncid) and file.date.date() == datetime.datetime.today().date():
+        print("Start to download " + file.ncid + "(" + file.size + ")")
         if download(file, cookies):
-            dao.insert_nc(cursor, file)
-            print(file.ncid + " Downloaded!")
+            dao.insert_nc(conn, file)
+            print("\t" + file.ncid + "(" + file.size + ") Downloaded!")
+            break
+conn.close()
 
+# read all nc files in directory download
 ncs = [f for f in glob.glob("download/*.nc")]
-print(ncs)
 for nc in ncs:
     read.save_to_csv(nc)
+    os.remove(nc)
