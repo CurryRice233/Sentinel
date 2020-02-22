@@ -4,7 +4,7 @@ import numpy
 import datetime
 
 
-def save_to_csv(file):
+def save_to_csv(file, save_path):
     nc = Dataset(file, mode='r')
     # print(nc.groups['PRODUCT'].variables.keys())
     lons = nc.groups['PRODUCT'].variables['longitude'][:].flatten()
@@ -16,5 +16,5 @@ def save_to_csv(file):
     data = pandas.DataFrame({'Longitude': lons, 'Latitude': lats, 'Data': no2})
     data['Data'].replace('', numpy.nan, inplace=True)
     data.dropna(subset=['Data'], inplace=True)
-    data.to_csv(str(time.date()) + ".csv", index=False, mode='a')
+    data.to_csv(save_path, index=False, mode='a')
     nc.close()

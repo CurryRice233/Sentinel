@@ -5,6 +5,7 @@ import xml.etree.cElementTree as ET
 import sqlite3
 import glob
 import datetime
+import json
 
 import utils
 from download import download
@@ -50,19 +51,53 @@ for entry in entries:
 
 print("\n" + str(count) + " Total files size: " + utils.sizeof_fmt(total_size))
 
-# download nc file
+# download and read data
+date = datetime.datetime.today()
+file_path = "display/data/" + str(date.date())
+os.makedirs(file_path, exist_ok=True)
+if os.path.exists(file_path + "/metadata.json"):
+    with open(file_path + "/metadata.json") as f:
+        try:
+            data = json.load(f)
+        except json.decoder.JSONDecodeError:
+            data = {}
+else:
+    data = {}
+
+total_size = 0
+count = 0
+for file in files:
+    if file.date.date() == date.date() and file.ncid not in data:
+        total_size += utils.parse_size(file.size)
+        count += 1
+
+print("Will download " + str(count) + " files with " + utils.sizeof_fmt(total_size))
+
+metadata = open(file_path + "/metadata.json", "w")
+for file in files:
+    if file.date.date() == date.date() and file.ncid not in data:
+        if download(file, cookies):
+            read.save_to_csv("download/" + file.ncid + ".nc", file_path + "/" + file.ncid + ".csv")
+            os.remove("download/" + file.ncid + ".nc")
+            data.update({file.ncid: {"size": file.size}})
+            json.dump(data, metadata)
+            break
+
+metadata.close()
+
+'''# download nc file
 conn = sqlite3.connect('./download.db')
 dao.create_download_table(conn)
 
 total_size = 0
 count = 0
 for file in files:
-    if not dao.exist_nc(conn, file.ncid) and file.date.date() == datetime.datetime.today().date():
+    if not dao.exist_nc(conn, file.ncid) and file.date.date() == datetime.datetime.today() - datetime.timedelta(day=1):
         total_size += utils.parse_size(file.size)
         count += 1
 print("Will download " + str(count) + " files with " + utils.sizeof_fmt(total_size))
 for file in files:
-    if not dao.exist_nc(conn, file.ncid) and file.date.date() == datetime.datetime.today().date():
+    if not dao.exist_nc(conn, file.ncid) and file.date.date() == datetime.datetime.today() - datetime.timedelta(day=1):
         print("Start to download " + file.ncid + "(" + file.size + ")")
         if download(file, cookies):
             dao.insert_nc(conn, file)
@@ -74,4 +109,4 @@ conn.close()
 ncs = [f for f in glob.glob("download/*.nc")]
 for nc in ncs:
     read.save_to_csv(nc)
-    os.remove(nc)
+    os.remove(nc)'''
