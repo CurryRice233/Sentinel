@@ -31,15 +31,19 @@
 
     <script>
         var marker
-        var picker = new Lightpick({
-            field: document.getElementById('calendar'),
-            format: "YYYY-MM-DD",
-            onSelect: function() {
-                $("p").first().text(picker.toString('YYYY-MM-DD'))
-                getMetadata("data/" + picker.toString('YYYY-MM-DD'))
-            },
-            minDate: '2020-02-21',
-            maxDate: '2020-02-22'
+        var picker
+
+        $.getJSON("data/metadata.json", function(metadata) {
+            picker = new Lightpick({
+                field: document.getElementById('calendar'),
+                format: "YYYY-MM-DD",
+                onSelect: function() {
+                    $("p").first().text(picker.toString('YYYY-MM-DD'))
+                    getMetadata("data/" + picker.toString('YYYY-MM-DD'))
+                },
+                minDate: metadata[0],
+                maxDate: metadata[metadata.length - 1]
+            });
         });
 
         function getMetadata(path) {
@@ -53,8 +57,11 @@
                             processData(data);
                         }
                     });
-                })
+                });
             })
+            if (mymap.hasLayer(marker)) {
+                mymap.removeLayer(marker)
+            }
         }
 
         var mymap = L.map('mapid').setView([41.743405, 22.284516], 3);
@@ -76,9 +83,7 @@
         });*/
 
         function processData(allText) {
-            if (mymap.hasLayer(marker)) {
-                mymap.removeLayer(marker)
-            }
+
             var allTextLines = allText.split(/\r\n|\n/);
             var headers = allTextLines[0].split(',');
             var tablaPuntos = [];

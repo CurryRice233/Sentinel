@@ -1,5 +1,7 @@
 import requests
 import pickle
+import os
+import json
 
 units = {"B": 1, "KB": 10 ** 3, "MB": 10 ** 6, "GB": 10 ** 9, "TB": 10 ** 12}
 
@@ -26,3 +28,14 @@ def get_cookies(username, password):
     f = open('./cookies', 'wb')
     pickle.dump(cookies, f)
     f.close()
+
+
+def update_date_metadata():
+    file_path = "docs/data/"
+    dates = [name for name in os.listdir(file_path) if os.path.isdir(os.path.join(file_path, name))]
+    metadata = open(file_path + "/metadata.json", "w")
+    json.dump(dates, metadata)
+    metadata.close()
+
+
+update_date_metadata()

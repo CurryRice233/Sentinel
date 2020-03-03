@@ -41,8 +41,8 @@ for entry in entries:
     ncid = entry.find('{http://www.w3.org/2005/Atom}id').text
     link = entry.find('{http://www.w3.org/2005/Atom}link').attrib['href']
     size = entry.find('{http://www.w3.org/2005/Atom}str[@name="size"]').text
-    date = datetime.datetime.strptime(entry.find('{http://www.w3.org/2005/Atom}date[@name="ingestiondate"]').text,
-                                      '%Y-%m-%dT%H:%M:%S.%fZ')
+    date = entry.find('{http://www.w3.org/2005/Atom}date[@name="ingestiondate"]').text.split("T")[0]
+    date = datetime.datetime.strptime(date,'%Y-%m-%d')
     nc = Nc(title, ncid, link, size, date)
     # print(str(nc))
     files.append(nc)
@@ -73,17 +73,18 @@ for file in files:
 
 print("Will download " + str(count) + " files with " + utils.sizeof_fmt(total_size))
 
-metadata = open(file_path + "/metadata.json", "w")
+
 for file in files:
     if file.date.date() == date.date() and file.ncid not in data:
         if download(file, cookies):
             read.save_to_csv("download/" + file.ncid + ".nc", file_path + "/" + file.ncid + ".csv")
             os.remove("download/" + file.ncid + ".nc")
             data.update({file.ncid: {"size": file.size}})
+            metadata = open(file_path + "/metadata.json", "w")
             json.dump(data, metadata)
-            break
+            metadata.close()
 
-metadata.close()
+
 
 '''# download nc file
 conn = sqlite3.connect('./download.db')
