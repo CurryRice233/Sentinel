@@ -53,7 +53,7 @@ for entry in entries:
 print("\n" + str(count) + " Total files size: " + utils.sizeof_fmt(total_size))
 
 # download and read data
-date = datetime.datetime.today() - datetime.timedelta(3)  # yesterday
+date = datetime.datetime.today() - datetime.timedelta(1)  # yesterday
 file_path = "docs/data/" + str(date.date())
 os.makedirs(file_path, exist_ok=True)
 if os.path.exists(file_path + "/metadata.json"):
@@ -108,7 +108,7 @@ try:
         else:
             msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "](All tries failed):" + file.ncid
 
-    msg += "\nDownloaded " + str(i) + "/" + str(files_to_download.__len__()) + " files"
+    msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "] Downloaded " + str(i) + "/" + str(files_to_download.__len__()) + " files"
 
 
 except Exception as e:
