@@ -17,12 +17,13 @@ def download(nc, cookies):
         temp_size = 0
 
     headers = {'Range': 'bytes=%d-' % temp_size}
-    r = requests.get(url, stream=True, cookies=cookies, headers=headers)
+    r = requests.get(url, stream=True, cookies=cookies, headers=headers, timeout=10)
     if temp_size == 0:
         f = open(file_path, "wb")
     else:
         f = open(file_path, "ab")
-    for chunk in r.iter_content(chunk_size=512):
+
+    for chunk in r.iter_content(chunk_size=1024):
         if chunk:
             temp_size += len(chunk)
             f.write(chunk)
@@ -30,9 +31,11 @@ def download(nc, cookies):
 
             # progress bar
             done = int(50 * temp_size / total_size)
-            sys.stdout.write("\r" + nc.ncid + ".nc(" + nc.size + ")\t [%s%s] %d%%" % ('█' * done, ' ' * (50 - done), 100 * temp_size / total_size))
+            sys.stdout.write("\r" + nc.ncid + ".nc(" + nc.size + ")\t [%s%s] %d%%" % (
+            '█' * done, ' ' * (50 - done), 100 * temp_size / total_size))
             sys.stdout.flush()
-    print()
+
+    f.close()
     if temp_size == total_size:
         return True
     else:

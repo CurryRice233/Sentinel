@@ -17,6 +17,11 @@
 
     <script src='js/leaflet-heat.js'></script>
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <style>
+        .leaflet-heatmap-layer {
+            opacity: 0.7;
+        }
+    </style>
 </head>
 
 <body>
@@ -34,6 +39,18 @@
         var picker
 
         $.getJSON("data/metadata.json", function(metadata) {
+            let disableDates = [];
+            let start = new Date(metadata[0]);
+            let end = new Date(metadata[metadata.length - 1]);
+            let temp = start;
+            while ((end - temp) > 0) {
+                if (!metadata.some(d => d == temp.toISOString().split("T")[0])) {
+                    disableDates.push(temp);
+                }
+                let nextDay = new Date(temp);
+                nextDay.setDate(temp.getDate() + 1);
+                temp = nextDay;
+            }
             picker = new Lightpick({
                 field: document.getElementById('calendar'),
                 format: "YYYY-MM-DD",
@@ -41,22 +58,21 @@
                     $("p").first().text(picker.toString('YYYY-MM-DD'))
                     getMetadata("data/" + picker.toString('YYYY-MM-DD'))
                 },
-                minDate: metadata[0],
-                maxDate: metadata[metadata.length - 1]
+                minDate: start,
+                maxDate: end,
+                disableDates: disableDates
             });
         });
 
         function getMetadata(path) {
             $.getJSON(path + "/metadata.json", function(metadata) {
-                $.each(metadata, function(index, element) {
-                    $.ajax({
-                        type: "GET",
-                        url: path + "/" + index + ".csv",
-                        dataType: "text",
-                        success: function(data) {
-                            processData(data);
-                        }
-                    });
+                $.ajax({
+                    type: "GET",
+                    url: path + "/data.csv",
+                    dataType: "text",
+                    success: function(data) {
+                        processData(data);
+                    }
                 });
             })
             if (mymap.hasLayer(marker)) {
@@ -73,15 +89,6 @@
             id: 'mapbox/streets-v11'
         }).addTo(mymap);
 
-        /*$(document).ready(function () {
-          $.ajax({
-            type: "GET",
-            url: "2019-11-17.csv",
-            dataType: "text",
-            success: function (data) { processData(data); }
-          });
-        });*/
-
         function processData(allText) {
 
             var allTextLines = allText.split(/\r\n|\n/);
@@ -95,9 +102,10 @@
                 tablaPuntos.push(ptocalor)
             }
             marker = L.heatLayer(tablaPuntos, {
-                radio: 25,
+                scaleRadius: true,
+                radius: 25,
                 minOpacity: 0.2,
-                maxOpacity: 1
+                blur: 50
             });
             marker.addTo(mymap)
         }

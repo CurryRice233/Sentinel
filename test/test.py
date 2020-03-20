@@ -7,9 +7,20 @@ from mpl_toolkits.basemap import Basemap
 from os import listdir
 import glob
 
+data = pd.read_csv("9880d57b-412d-4ee0-a8ff-c6cacbb11d5e.csv")
+data["Data"] = data["Data"] * 1000000
+data = data[data.Data > 100]
+data.dropna(subset=['Data'], inplace=True)
+print(data["Data"])
+data.to_csv("100.csv", index=False)
+# data = pd.DataFrame(data, dtype='float')
+# print(data["Data"].tolist())
+
+'''
 print(listdir("./"))
 print([f for f in glob.glob("*.nc")])
-'''
+
+
 my_example_nc_file = 'S5P_NRTI_L2__CO_____20191117T111514_20191117T112014_10854_01_010302_20191117T115316.nc'
 fh = Dataset(my_example_nc_file, mode='r')
 print(fh.variables.keys())
@@ -48,7 +59,6 @@ print(netCDF4.num2date(time[:], time.units))
 print(time.units.split("since")[1].strip())
 '''
 
-
 '''
 fig = plt.figure(figsize=(20, 20))
 m=Basemap(projection='cyl',llcrnrlat=30,llcrnrlon=-14,urcrnrlat=75,urcrnrlon=70)
@@ -63,4 +73,3 @@ cbar = m.colorbar(cf, location='right',size='3%' ,pad='2%')
 plt.savefig('test.png')
 plt.show()
 '''
-

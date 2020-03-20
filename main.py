@@ -1,19 +1,20 @@
 import os
 import pickle
+
 import requests
+import socket
+import time
 import xml.etree.cElementTree as ET
-import sqlite3
-import glob
 import datetime
 import json
 
 import utils
 from download import download
 from nc import Nc
-import dao
 import read
+import bot
 
-url = 'https://s5phub.copernicus.eu/dhus/search?start=0&rows=50&q=(footprint:"Intersects(POLYGON((-29.812190777585087 26.577078786569615,69.10491090874537 26.577078786569615,69.10491090874537 71.10236152833656,-29.812190777585087 71.10236152833656,-29.812190777585087 26.577078786569615)))" ) AND ( (platformname:Sentinel-5 AND producttype:L2__NO2___))'
+url = 'https://s5phub.copernicus.eu/dhus/search?start=100&rows=100&q=(footprint:"Intersects(POLYGON((-29.812190777585087 26.577078786569615,69.10491090874537 26.577078786569615,69.10491090874537 71.10236152833656,-29.812190777585087 71.10236152833656,-29.812190777585087 26.577078786569615)))" ) AND ( (platformname:Sentinel-5 AND producttype:L2__NO2___))'
 username = 's5pguest'
 password = 's5pguest'
 
@@ -42,7 +43,7 @@ for entry in entries:
     link = entry.find('{http://www.w3.org/2005/Atom}link').attrib['href']
     size = entry.find('{http://www.w3.org/2005/Atom}str[@name="size"]').text
     date = entry.find('{http://www.w3.org/2005/Atom}date[@name="ingestiondate"]').text.split("T")[0]
-    date = datetime.datetime.strptime(date,'%Y-%m-%d')
+    date = datetime.datetime.strptime(date, '%Y-%m-%d')
     nc = Nc(title, ncid, link, size, date)
     # print(str(nc))
     files.append(nc)
@@ -52,7 +53,7 @@ for entry in entries:
 print("\n" + str(count) + " Total files size: " + utils.sizeof_fmt(total_size))
 
 # download and read data
-date = datetime.datetime.today() - datetime.timedelta(0)
+date = datetime.datetime.today() - datetime.timedelta(3)  # yesterday
 file_path = "docs/data/" + str(date.date())
 os.makedirs(file_path, exist_ok=True)
 if os.path.exists(file_path + "/metadata.json"):
@@ -65,49 +66,55 @@ else:
     data = {}
 
 total_size = 0
-count = 0
+files_to_download = []
 for file in files:
     if file.date.date() == date.date() and file.ncid not in data:
+        files_to_download.append(file)
         total_size += utils.parse_size(file.size)
-        count += 1
 
-print("Will download " + str(count) + " files with " + utils.sizeof_fmt(total_size))
+print("Will download " + str(len(files_to_download)) + " files with " + utils.sizeof_fmt(total_size) + " (" + str(
+    date.date()) + ")")
 
+msg = ""
+i = 0
+MAX_RETRIES = 5
+WAIT_SECONDS = 5
+try:
+    for file in files_to_download:
 
-for file in files:
-    if file.date.date() == date.date() and file.ncid not in data:
-        if download(file, cookies):
-            read.save_to_csv("download/" + file.ncid + ".nc", file_path + "/" + file.ncid + ".csv")
+        for j in range(MAX_RETRIES):
+            try:
+                is_downloaded = download(file, cookies)
+                break
+            except requests.exceptions.ConnectionError:
+                msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "](" + str(
+                    j) + " retry):<" + file.ncid + "> Connection Error."
+            except socket.timeout:
+                msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "](" + str(
+                    j) + " retry):<" + file.ncid + "> Time out."
+            time.sleep(WAIT_SECONDS)
+        else:
+            is_downloaded = False
+
+        if is_downloaded:
+            i += 1
+            print("  (" + str(i) + "/" + str(files_to_download.__len__()) + ")")
+            read.save_to_csv("download/" + file.ncid + ".nc", file_path + "/data.csv")
             os.remove("download/" + file.ncid + ".nc")
             data.update({file.ncid: {"size": file.size}})
             metadata = open(file_path + "/metadata.json", "w")
             json.dump(data, metadata)
             metadata.close()
+        else:
+            msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "](All tries failed):" + file.ncid
+
+    msg += "\nDownloaded " + str(i) + "/" + str(files_to_download.__len__()) + " files"
 
 
+except Exception as e:
+    msg += str(e)
 
-'''# download nc file
-conn = sqlite3.connect('./download.db')
-dao.create_download_table(conn)
-
-total_size = 0
-count = 0
-for file in files:
-    if not dao.exist_nc(conn, file.ncid) and file.date.date() == datetime.datetime.today() - datetime.timedelta(day=1):
-        total_size += utils.parse_size(file.size)
-        count += 1
-print("Will download " + str(count) + " files with " + utils.sizeof_fmt(total_size))
-for file in files:
-    if not dao.exist_nc(conn, file.ncid) and file.date.date() == datetime.datetime.today() - datetime.timedelta(day=1):
-        print("Start to download " + file.ncid + "(" + file.size + ")")
-        if download(file, cookies):
-            dao.insert_nc(conn, file)
-            print("\t" + file.ncid + "(" + file.size + ") Downloaded!")
-            break
-conn.close()
-
-# read all nc files in directory download
-ncs = [f for f in glob.glob("download/*.nc")]
-for nc in ncs:
-    read.save_to_csv(nc)
-    os.remove(nc)'''
+bot.send_message(msg)
+log = open("log.txt", "a+")
+log.write("\n\n---" + date.strftime("%Y-%m-%d %H:%M:%S") + "---" + msg)
+log.close()
