@@ -57,6 +57,7 @@ print("\n" + str(count) + " Total files size: " + utils.sizeof_fmt(total_size))
 date = datetime.datetime.today() - datetime.timedelta(1)  # yesterday
 file_path = "docs/data/" + str(date.date())
 os.makedirs(file_path, exist_ok=True)
+utils.update_date_metadata()
 if os.path.exists(file_path + "/metadata.json"):
     with open(file_path + "/metadata.json") as f:
         try:

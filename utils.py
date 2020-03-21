@@ -33,9 +33,9 @@ def get_cookies(username, password):
 def update_date_metadata():
     file_path = "docs/data/"
     dates = [name for name in os.listdir(file_path) if os.path.isdir(os.path.join(file_path, name))]
+    dates.sort()
     metadata = open(file_path + "/metadata.json", "w")
     json.dump(dates, metadata)
     metadata.close()
 
 
-update_date_metadata()
