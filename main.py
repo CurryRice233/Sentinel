@@ -15,7 +15,7 @@ import read
 import bot
 import github
 
-url = 'https://s5phub.copernicus.eu/dhus/search?start=100&rows=100&q=(footprint:"Intersects(POLYGON((-29.812190777585087 26.577078786569615,69.10491090874537 26.577078786569615,69.10491090874537 71.10236152833656,-29.812190777585087 71.10236152833656,-29.812190777585087 26.577078786569615)))" ) AND ( (platformname:Sentinel-5 AND producttype:L2__NO2___))'
+url = 'https://s5phub.copernicus.eu/dhus/search?start=0&rows=100&q=(footprint:"Intersects(POLYGON((-29.812190777585087 26.577078786569615,69.10491090874537 26.577078786569615,69.10491090874537 71.10236152833656,-29.812190777585087 71.10236152833656,-29.812190777585087 26.577078786569615)))" ) AND ( (platformname:Sentinel-5 AND producttype:L2__NO2___))'
 username = 's5pguest'
 password = 's5pguest'
 
