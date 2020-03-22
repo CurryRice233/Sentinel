@@ -116,8 +116,16 @@ try:
 except Exception as e:
     msg += str(e)
 
-bot.send_message(msg)
+
+try:
+    github.push_to_github()
+except Exception as e:
+    msg += str(e)
+
+if not bot.send_message(msg):
+    msg = "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "]: Telegram bot can't send message." + msg
+
 log = open("log.txt", "a+")
 log.write("\n\n---" + date.strftime("%Y-%m-%d %H:%M:%S") + "---" + msg)
 log.close()
-github.push_to_github()
+
