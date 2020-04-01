@@ -58,7 +58,7 @@ def get_search_result(date, cookies):
 
 
 def get_files_by_date(search_date, cookies):
-    result = {'files': [], 'count': 0, 'total_size': 0}
+    result = {'files': [], 'total_size': 0}
 
     entries = get_search_result(search_date, cookies)
     for entry in entries:
@@ -74,6 +74,5 @@ def get_files_by_date(search_date, cookies):
             # print(str(nc))
             result['files'].append(nc)
             result['total_size'] += parse_size(size)
-            result['count'] += 1
 
     return result

@@ -20,11 +20,12 @@ password = 's5pguest'
 utils.get_cookies(username, password)
 cookies = pickle.load(open("./cookies", 'rb'))
 
-#date = datetime.datetime.today() - datetime.timedelta(1)  # yesterday
-date = datetime.datetime(2020, 3, 11)
+# date = datetime.datetime.today() - datetime.timedelta(1)  # yesterday
+date = datetime.datetime(2020, 3, 30)
 result = utils.get_files_by_date(date, cookies)
 
-print("\n" + str(result['count']) + " Total files size: " + utils.sizeof_fmt(result['total_size']))
+print("\n" + str(date.date()) + ": " + str(result['files'].__len__()) + " files with total size: " + utils.sizeof_fmt(
+    result['total_size']))
 
 # download and read data
 file_path = "docs/data/" + str(date.date())
@@ -82,12 +83,12 @@ try:
         else:
             msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "](All tries failed):" + file.ncid
 
-    msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "] Downloaded " + str(i) + "/" + str(files_to_download.__len__()) + " files"
+    msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "] Downloaded " + str(i) + "/" + str(
+        files_to_download.__len__()) + " files"
 
 
 except Exception as e:
     msg += str(e)
-
 
 try:
     github.push_to_github()
@@ -100,4 +101,3 @@ if not bot.send_message(msg):
 log = open("log.txt", "a+")
 log.write("\n\n---" + date.strftime("%Y-%m-%d %H:%M:%S") + "---" + msg)
 log.close()
-
