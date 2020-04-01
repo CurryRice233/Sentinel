@@ -1,10 +1,9 @@
 import os
-import pickle
 
 import requests
 import socket
 import time
-import xml.etree.cElementTree as ET
+import pickle
 import datetime
 import json
 
@@ -15,46 +14,19 @@ import read
 import bot
 import github
 
-url = 'https://s5phub.copernicus.eu/dhus/search?start=0&rows=100&q=(footprint:"Intersects(POLYGON((-29.812190777585087 26.577078786569615,69.10491090874537 26.577078786569615,69.10491090874537 71.10236152833656,-29.812190777585087 71.10236152833656,-29.812190777585087 26.577078786569615)))" ) AND ( (platformname:Sentinel-5 AND producttype:L2__NO2___))'
 username = 's5pguest'
 password = 's5pguest'
 
-# get search list with cookies
-if not os.path.exists('./cookies'):
-    utils.get_cookies(username, password)
+utils.get_cookies(username, password)
 cookies = pickle.load(open("./cookies", 'rb'))
-text = requests.get(url, cookies=cookies)
 
-if text.status_code == 401:
-    utils.get_cookies(username, password)
-    cookies = pickle.load(open("./cookies", 'rb'))
-    text = requests.get(url, cookies=cookies)
+#date = datetime.datetime.today() - datetime.timedelta(1)  # yesterday
+date = datetime.datetime(2020, 3, 11)
+result = utils.get_files_by_date(date, cookies)
 
-# text to class nc
-tree = ET.ElementTree(ET.fromstring(text.text))
-root = tree.getroot()
-entries = root.findall("{http://www.w3.org/2005/Atom}entry")
-
-total_size = 0
-count = 0
-files = []
-for entry in entries:
-    title = entry.find('{http://www.w3.org/2005/Atom}title').text
-    ncid = entry.find('{http://www.w3.org/2005/Atom}id').text
-    link = entry.find('{http://www.w3.org/2005/Atom}link').attrib['href']
-    size = entry.find('{http://www.w3.org/2005/Atom}str[@name="size"]').text
-    date = entry.find('{http://www.w3.org/2005/Atom}date[@name="ingestiondate"]').text.split("T")[0]
-    date = datetime.datetime.strptime(date, '%Y-%m-%d')
-    nc = Nc(title, ncid, link, size, date)
-    # print(str(nc))
-    files.append(nc)
-    total_size += utils.parse_size(size)
-    count += 1
-
-print("\n" + str(count) + " Total files size: " + utils.sizeof_fmt(total_size))
+print("\n" + str(result['count']) + " Total files size: " + utils.sizeof_fmt(result['total_size']))
 
 # download and read data
-date = datetime.datetime.today() - datetime.timedelta(1)  # yesterday
 file_path = "docs/data/" + str(date.date())
 os.makedirs(file_path, exist_ok=True)
 utils.update_date_metadata()
@@ -69,7 +41,7 @@ else:
 
 total_size = 0
 files_to_download = []
-for file in files:
+for file in result['files']:
     if file.date.date() == date.date() and file.ncid not in data:
         files_to_download.append(file)
         total_size += utils.parse_size(file.size)

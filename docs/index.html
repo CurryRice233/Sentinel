@@ -44,7 +44,7 @@
             let end = new Date(metadata[metadata.length - 1]);
             let temp = start;
             while ((end - temp) > 0) {
-                if (!metadata.some(d => d == temp.toISOString().split("T")[0])) {
+                if (!metadata.some(d => new Date(d).getDate() == temp.getDate())) {
                     disableDates.push(temp);
                 }
                 let nextDay = new Date(temp);
