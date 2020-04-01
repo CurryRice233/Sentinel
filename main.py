@@ -21,7 +21,7 @@ utils.get_cookies(username, password)
 cookies = pickle.load(open("./cookies", 'rb'))
 
 # date = datetime.datetime.today() - datetime.timedelta(1)  # yesterday
-date = datetime.datetime(2020, 3, 30)
+date = datetime.datetime(2020, 3, 11)
 result = utils.get_files_by_date(date, cookies)
 
 print("\n" + str(date.date()) + ": " + str(result['files'].__len__()) + " files with total size: " + utils.sizeof_fmt(
@@ -67,6 +67,7 @@ try:
             except socket.timeout:
                 msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "](" + str(
                     j) + " retry):<" + file.ncid + "> Time out."
+
             time.sleep(WAIT_SECONDS)
         else:
             is_downloaded = False
@@ -75,7 +76,7 @@ try:
             i += 1
             print("  (" + str(i) + "/" + str(files_to_download.__len__()) + ")")
             read.save_to_csv("download/" + file.ncid + ".nc", file_path + "/data.csv")
-            os.remove("download/" + file.ncid + ".nc")
+            #os.remove("download/" + file.ncid + ".nc")
             data.update({file.ncid: {"size": file.size}})
             metadata = open(file_path + "/metadata.json", "w")
             json.dump(data, metadata)
@@ -88,12 +89,12 @@ try:
 
 
 except Exception as e:
-    msg += str(e)
+    msg += "\n" + str(e)
 
 try:
     github.push_to_github()
 except Exception as e:
-    msg += str(e)
+    msg += "\n" + str(e)
 
 if not bot.send_message(msg):
     msg = "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "]: Telegram bot can't send message." + msg
