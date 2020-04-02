@@ -9,7 +9,6 @@ import json
 
 import utils
 from download import download
-from nc import Nc
 import read
 import bot
 import github
@@ -21,7 +20,7 @@ utils.get_cookies(username, password)
 cookies = pickle.load(open("./cookies", 'rb'))
 
 # date = datetime.datetime.today() - datetime.timedelta(1)  # yesterday
-date = datetime.datetime(2020, 3, 11)
+date = datetime.datetime(2020, 3, 21)
 result = utils.get_files_by_date(date, cookies)
 
 print("\n" + str(date.date()) + ": " + str(result['files'].__len__()) + " files with total size: " + utils.sizeof_fmt(
@@ -52,44 +51,43 @@ print("Will download " + str(len(files_to_download)) + " files with " + utils.si
 
 msg = ""
 i = 0
-MAX_RETRIES = 5
-WAIT_SECONDS = 5
-try:
-    for file in files_to_download:
+MAX_RETRIES = 10
+WAIT_SECONDS = 10
+'''try:'''
+for file in files_to_download:
 
-        for j in range(MAX_RETRIES):
-            try:
-                is_downloaded = download(file, cookies)
-                break
-            except requests.exceptions.ConnectionError:
-                msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "](" + str(
-                    j) + " retry):<" + file.ncid + "> Connection Error."
-            except socket.timeout:
-                msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "](" + str(
-                    j) + " retry):<" + file.ncid + "> Time out."
+    for j in range(MAX_RETRIES):
+        try:
+            is_downloaded = download(file, cookies)
+            break
+        except requests.exceptions.ConnectionError:
+            msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "](" + str(
+                j) + " retry):<" + file.ncid + "> Connection Error."
+        except socket.timeout:
+            msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "](" + str(
+                j) + " retry):<" + file.ncid + "> Time out."
 
-            time.sleep(WAIT_SECONDS)
-        else:
-            is_downloaded = False
+        time.sleep(WAIT_SECONDS)
+    else:
+        is_downloaded = False
 
-        if is_downloaded:
-            i += 1
-            print("  (" + str(i) + "/" + str(files_to_download.__len__()) + ")")
-            read.save_to_csv("download/" + file.ncid + ".nc", file_path + "/data.csv")
-            #os.remove("download/" + file.ncid + ".nc")
-            data.update({file.ncid: {"size": file.size}})
-            metadata = open(file_path + "/metadata.json", "w")
-            json.dump(data, metadata)
-            metadata.close()
-        else:
-            msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "](All tries failed):" + file.ncid
+    if is_downloaded:
+        i += 1
+        print("  (" + str(i) + "/" + str(files_to_download.__len__()) + ")")
+        read.save_to_csv("download/" + file.ncid + ".nc", file_path + "/data.csv")
+        os.remove("download/" + file.ncid + ".nc")
+        data.update({file.ncid: {"size": file.size}})
+        metadata = open(file_path + "/metadata.json", "w")
+        json.dump(data, metadata)
+        metadata.close()
+    else:
+        msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "](All tries failed):" + file.ncid
 
-    msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "] Downloaded " + str(i) + "/" + str(
-        files_to_download.__len__()) + " files"
+msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "] Downloaded " + str(i) + "/" + str(
+    files_to_download.__len__()) + " files"
 
-
-except Exception as e:
-    msg += "\n" + str(e)
+'''except Exception as e:
+    msg += "\n" + str(e)'''
 
 try:
     github.push_to_github()

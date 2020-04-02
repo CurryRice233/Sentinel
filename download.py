@@ -17,13 +17,13 @@ def download(nc, cookies):
         temp_size = 0
 
     headers = {'Range': 'bytes=%d-' % temp_size}
-    r = requests.get(url, stream=True, cookies=cookies, headers=headers, timeout=10)
+    r = requests.get(url, stream=True, cookies=cookies, headers=headers, timeout=15)
     if temp_size == 0:
         f = open(file_path, "wb")
     else:
         f = open(file_path, "ab")
 
-    for chunk in r.iter_content(chunk_size=1024):
+    for chunk in r.iter_content(chunk_size=512):
         if chunk:
             temp_size += len(chunk)
             f.write(chunk)
