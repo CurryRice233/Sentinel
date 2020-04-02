@@ -19,8 +19,8 @@ password = 's5pguest'
 utils.get_cookies(username, password)
 cookies = pickle.load(open("./cookies", 'rb'))
 
-# date = datetime.datetime.today() - datetime.timedelta(1)  # yesterday
-date = datetime.datetime(2020, 3, 21)
+date = datetime.datetime.today() - datetime.timedelta(1)  # yesterday
+# date = datetime.datetime(2020, 3, 21)
 result = utils.get_files_by_date(date, cookies)
 
 print("\n" + str(date.date()) + ": " + str(result['files'].__len__()) + " files with total size: " + utils.sizeof_fmt(
