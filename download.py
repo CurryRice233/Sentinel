@@ -9,30 +9,33 @@ def download(nc, cookies):
     file_path = "download/" + nc.ncid + ".nc"
 
     r = requests.get(url, stream=True, cookies=cookies)
-    total_size = int(r.headers['Content-Length'])
+    # total_size = int(r.headers['Content-Length'])
+    total_size = float(r.headers.get('content-length', len(r.content)))
 
     if os.path.exists(file_path) and os.path.getsize(file_path) < total_size:
         temp_size = os.path.getsize(file_path)
     else:
         temp_size = 0
 
-    headers = {'Range': 'bytes=%d-' % temp_size}
-    r = requests.get(url, stream=True, cookies=cookies, headers=headers, timeout=15)
+    headers = {'Range': 'bytes=%d-%d' % (temp_size, total_size - 1)}
+    r = requests.get(url, stream=True, cookies=cookies, headers=headers, timeout=10)
     if temp_size == 0:
         f = open(file_path, "wb")
     else:
         f = open(file_path, "ab")
 
-    for chunk in r.iter_content(chunk_size=512):
+    for chunk in r.iter_content(chunk_size=1024 * 1024):
         if chunk:
-            temp_size += len(chunk)
+            f.seek(temp_size)
+            f.truncate()
             f.write(chunk)
             f.flush()
+            temp_size += len(chunk)
 
             # progress bar
             done = int(50 * temp_size / total_size)
             sys.stdout.write("\r" + nc.ncid + ".nc(" + nc.size + ")\t [%s%s] %d%%" % (
-            '█' * done, ' ' * (50 - done), 100 * temp_size / total_size))
+                '█' * done, ' ' * (50 - done), 100 * temp_size / total_size))
             sys.stdout.flush()
 
     f.close()

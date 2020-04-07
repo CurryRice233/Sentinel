@@ -1,5 +1,5 @@
 import os
-
+import sys
 import requests
 import socket
 import time
@@ -19,8 +19,16 @@ password = 's5pguest'
 utils.get_cookies(username, password)
 cookies = pickle.load(open("./cookies", 'rb'))
 
-date = datetime.datetime.today() - datetime.timedelta(1)  # yesterday
-# date = datetime.datetime(2020, 3, 21)
+if len(sys.argv) > 1:
+    try:
+        date = datetime.datetime.strptime(sys.argv[1], '%Y/%m/%d')
+    except ValueError:
+        print("Date Format Error! (format: YYYY/MM/DD)")
+        sys.exit()
+else:
+    # date = datetime.datetime(2020, 3, 29)
+    date = datetime.datetime.today() - datetime.timedelta(1)  # yesterday
+
 result = utils.get_files_by_date(date, cookies)
 
 print("\n" + str(date.date()) + ": " + str(result['files'].__len__()) + " files with total size: " + utils.sizeof_fmt(
@@ -53,46 +61,49 @@ msg = ""
 i = 0
 MAX_RETRIES = 10
 WAIT_SECONDS = 10
-'''try:'''
-for file in files_to_download:
+try:
+    for file in files_to_download:
 
-    for j in range(MAX_RETRIES):
-        try:
-            is_downloaded = download(file, cookies)
-            break
-        except requests.exceptions.ConnectionError:
-            msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "](" + str(
-                j) + " retry):<" + file.ncid + "> Connection Error."
-        except socket.timeout:
-            msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "](" + str(
-                j) + " retry):<" + file.ncid + "> Time out."
+        for j in range(MAX_RETRIES):
+            try:
+                is_downloaded = download(file, cookies)
+                break
+            except requests.exceptions.ConnectionError:
+                msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "](" + str(
+                    j) + " retry):<" + file.ncid + "> Connection Error."
+            except requests.exceptions.ReadTimeout:
+                msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "](" + str(
+                    j) + " retry):<" + file.ncid + "> Requests Time out."
+            except socket.timeout:
+                msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "](" + str(
+                    j) + " retry):<" + file.ncid + "> Socket Time out."
 
-        time.sleep(WAIT_SECONDS)
-    else:
-        is_downloaded = False
+            time.sleep(WAIT_SECONDS)
+        else:
+            is_downloaded = False
 
-    if is_downloaded:
-        i += 1
-        print("  (" + str(i) + "/" + str(files_to_download.__len__()) + ")")
-        read.save_to_csv("download/" + file.ncid + ".nc", file_path + "/data.csv")
-        os.remove("download/" + file.ncid + ".nc")
-        data.update({file.ncid: {"size": file.size}})
-        metadata = open(file_path + "/metadata.json", "w")
-        json.dump(data, metadata)
-        metadata.close()
-    else:
-        msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "](All tries failed):" + file.ncid
+        if is_downloaded:
+            i += 1
+            print("  (" + str(i) + "/" + str(files_to_download.__len__()) + ")")
+            read.save_to_csv("download/" + file.ncid + ".nc", file_path + "/data.csv")
+            os.remove("download/" + file.ncid + ".nc")
+            data.update({file.ncid: {"size": file.size}})
+            metadata = open(file_path + "/metadata.json", "w")
+            json.dump(data, metadata)
+            metadata.close()
+        else:
+            msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "](All tries failed):" + file.ncid
 
-msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "] Downloaded " + str(i) + "/" + str(
-    files_to_download.__len__()) + " files"
+    msg = "[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "] Downloaded " + str(i) + "/" + str(
+        files_to_download.__len__()) + " files" + msg
 
-'''except Exception as e:
-    msg += "\n" + str(e)'''
+except Exception as e:
+    msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "]" + str(e)
 
 try:
     github.push_to_github()
 except Exception as e:
-    msg += "\n" + str(e)
+    msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "]" + str(e)
 
 if not bot.send_message(msg):
     msg = "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "]: Telegram bot can't send message." + msg
