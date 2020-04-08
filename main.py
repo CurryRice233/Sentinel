@@ -92,7 +92,7 @@ try:
             json.dump(data, metadata)
             metadata.close()
         else:
-            msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "](All tries failed):" + file.ncid
+            msg += "\n[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "](Download failed):" + file.ncid
 
     msg = "[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "] Downloaded " + str(i) + "/" + str(
         files_to_download.__len__()) + " files" + msg
