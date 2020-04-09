@@ -10,7 +10,7 @@ def download(nc, cookies):
     file_path = "download/" + nc.ncid + ".nc"
 
     r = requests.head(url, cookies=cookies, headers={'Accept-Encoding': None})
-    if 'content-length' in r.header:
+    if 'content-length' in r.headers:
         total_size = int(r.headers['content-length'])
     else:
         total_size = -1
