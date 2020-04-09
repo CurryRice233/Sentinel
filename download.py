@@ -9,14 +9,11 @@ def download(nc, cookies):
     url = "https://s5phub.copernicus.eu/dhus/odata/v1/Products('" + nc.ncid + "')/$value"
     file_path = "download/" + nc.ncid + ".nc"
 
-    r = requests.head(url, cookies=cookies, headers={'Accept-Encoding': None})
-    if 'content-length' in r.headers:
-        total_size = int(r.headers['content-length'])
-    else:
-        total_size = -1
+    r = requests.head(url, cookies=cookies, stream=True, headers={'Accept-Encoding': 'gzip'})
+    total_size = int(r.headers['content-length'])
     # total_size = int(r.headers.get('content-length', len(r.content)))
 
-    if os.path.exists(file_path) and (total_size == -1 or os.path.getsize(file_path) < total_size):
+    if os.path.exists(file_path) and os.path.getsize(file_path) < total_size:
         temp_size = os.path.getsize(file_path)
     else:
         temp_size = 0
@@ -37,17 +34,14 @@ def download(nc, cookies):
             temp_size += len(chunk)
 
             # progress bar
-            if total_size != -1:
-                done = int(50 * temp_size / total_size)
-                sys.stdout.write("\r" + nc.ncid + ".nc(" + nc.size + ")\t [%s%s] %d%%" % (
-                    '█' * done, ' ' * (50 - done), 100 * temp_size / total_size))
-                sys.stdout.flush()
-            else:
-                sys.stdout.write("\r" + nc.ncid + ".nc(Unknown Size)\t Downloaded "+utils.sizeof_fmt(temp_size))
-                sys.stdout.flush()
+
+            done = int(50 * temp_size / total_size)
+            sys.stdout.write("\r" + nc.ncid + ".nc(" + nc.size + ")\t [%s%s] %d%%" % (
+                '█' * done, ' ' * (50 - done), 100 * temp_size / total_size))
+            sys.stdout.flush()
 
     f.close()
-    if temp_size == total_size or total_size == -1:
+    if temp_size == total_size:
         return True
     else:
         return False
