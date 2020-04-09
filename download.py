@@ -8,16 +8,16 @@ def download(nc, cookies):
     url = "https://s5phub.copernicus.eu/dhus/odata/v1/Products('" + nc.ncid + "')/$value"
     file_path = "download/" + nc.ncid + ".nc"
 
-    r = requests.head(url, cookies=cookies)
+    r = requests.head(url, cookies=cookies, headers={'Accept-Encoding': None})
     total_size = int(r.headers['content-length'])
-    # total_size = float(r.headers.get('content-length', len(r.content)))
+    # total_size = int(r.headers.get('content-length', len(r.content)))
 
     if os.path.exists(file_path) and os.path.getsize(file_path) < total_size:
         temp_size = os.path.getsize(file_path)
     else:
         temp_size = 0
 
-    headers = {'Range': 'bytes=%d-%d' % (temp_size, total_size - 1)}
+    headers = {'Range': 'bytes=%d-' % temp_size}
     r = requests.get(url, stream=True, cookies=cookies, headers=headers, timeout=10)
     if temp_size == 0:
         f = open(file_path, "wb")
