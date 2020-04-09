@@ -1,6 +1,7 @@
 import requests
 import os
 import sys
+import utils
 
 
 def download(nc, cookies):
@@ -9,10 +10,13 @@ def download(nc, cookies):
     file_path = "download/" + nc.ncid + ".nc"
 
     r = requests.head(url, cookies=cookies, headers={'Accept-Encoding': None})
-    total_size = int(r.headers['content-length'])
+    if 'content-length' in r.header:
+        total_size = int(r.headers['content-length'])
+    else:
+        total_size = -1
     # total_size = int(r.headers.get('content-length', len(r.content)))
 
-    if os.path.exists(file_path) and os.path.getsize(file_path) < total_size:
+    if os.path.exists(file_path) and (total_size == -1 or os.path.getsize(file_path) < total_size):
         temp_size = os.path.getsize(file_path)
     else:
         temp_size = 0
@@ -33,13 +37,17 @@ def download(nc, cookies):
             temp_size += len(chunk)
 
             # progress bar
-            done = int(50 * temp_size / total_size)
-            sys.stdout.write("\r" + nc.ncid + ".nc(" + nc.size + ")\t [%s%s] %d%%" % (
-                '█' * done, ' ' * (50 - done), 100 * temp_size / total_size))
-            sys.stdout.flush()
+            if total_size != -1:
+                done = int(50 * temp_size / total_size)
+                sys.stdout.write("\r" + nc.ncid + ".nc(" + nc.size + ")\t [%s%s] %d%%" % (
+                    '█' * done, ' ' * (50 - done), 100 * temp_size / total_size))
+                sys.stdout.flush()
+            else:
+                sys.stdout.write("\r" + nc.ncid + ".nc(Unknown Size)\t Downloaded "+utils.sizeof_fmt(temp_size))
+                sys.stdout.flush()
 
     f.close()
-    if temp_size == total_size:
+    if temp_size == total_size or total_size == -1:
         return True
     else:
         return False
