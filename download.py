@@ -1,7 +1,6 @@
 import requests
 import os
 import sys
-import utils
 
 
 def download(nc, cookies):
@@ -9,7 +8,8 @@ def download(nc, cookies):
     url = "https://s5phub.copernicus.eu/dhus/odata/v1/Products('" + nc.ncid + "')/$value"
     file_path = "download/" + nc.ncid + ".nc"
 
-    r = requests.head(url, cookies=cookies, stream=True, headers={'Accept-Encoding': 'gzip'})
+    r = requests.head(url, cookies=cookies, stream=True,
+                      headers={'Accept-Encoding': 'gzip', 'TE': 'gzip'})
     total_size = int(r.headers['content-length'])
     # total_size = int(r.headers.get('content-length', len(r.content)))
 
