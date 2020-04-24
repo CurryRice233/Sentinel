@@ -8,8 +8,12 @@
     <link rel="stylesheet" type="text/css" href="css/index.css">
 
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin="" />
-    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin=""></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+        integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+        crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+        integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+        crossorigin=""></script>
 
     <link rel="stylesheet" type="text/css" href="css/lightpick.css">
     <script src="js/moment.min.js"></script>
@@ -38,23 +42,34 @@
         var marker
         var picker
 
-        $.getJSON("data/metadata.json", function(metadata) {
+        $.getJSON("data/metadata.json", function (metadata) {
             let disableDates = [];
             let start = new Date(metadata[0]);
             let end = new Date(metadata[metadata.length - 1]);
             let temp = start;
             while ((end - temp) > 0) {
-                if (!metadata.some(d => new Date(d).getDate() == temp.getDate())) {
+                if (!metadata.some(d => {
+                    d = new Date(d);
+                    if (d.getDate() != temp.getDate())
+                        return false;
+                    if (d.getMonth() != temp.getMonth())
+                        return false;
+                    if (d.getFullYear() != temp.getFullYear())
+                        return false;
+                    return true;
+                })) {
                     disableDates.push(temp);
                 }
                 let nextDay = new Date(temp);
                 nextDay.setDate(temp.getDate() + 1);
                 temp = nextDay;
             }
+
+
             picker = new Lightpick({
                 field: document.getElementById('calendar'),
                 format: "YYYY-MM-DD",
-                onSelect: function() {
+                onSelect: function () {
                     $("p").first().text(picker.toString('YYYY-MM-DD'))
                     getMetadata("data/" + picker.toString('YYYY-MM-DD'))
                 },
@@ -65,12 +80,12 @@
         });
 
         function getMetadata(path) {
-            $.getJSON(path + "/metadata.json", function(metadata) {
+            $.getJSON(path + "/metadata.json", function (metadata) {
                 $.ajax({
                     type: "GET",
                     url: path + "/data.csv",
                     dataType: "text",
-                    success: function(data) {
+                    success: function (data) {
                         processData(data);
                     }
                 });
