@@ -62,7 +62,7 @@ def get_files_by_date(search_date, cookies):
 
     entries = get_search_result(search_date, cookies)
     for entry in entries:
-        date = entry.find('{http://www.w3.org/2005/Atom}date[@name="ingestiondate"]').text.split("T")[0]
+        date = entry.find('{http://www.w3.org/2005/Atom}date[@name="beginposition"]').text.split("T")[0]
         date = datetime.datetime.strptime(date, '%Y-%m-%d')
         if date.date() == search_date.date():
             title = entry.find('{http://www.w3.org/2005/Atom}title').text
