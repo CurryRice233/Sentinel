@@ -1,6 +1,7 @@
 import requests
 import os
 import sys
+import utils
 
 
 def download(nc, cookies):
@@ -10,7 +11,10 @@ def download(nc, cookies):
 
     r = requests.head(url, cookies=cookies, stream=True,
                       headers={'Accept-Encoding': 'gzip', 'TE': 'gzip'})
-    total_size = int(r.headers['content-length'])
+    if 'content-length' in r.headers:
+        total_size = int(r.headers['content-length'])
+    else:
+        total_size = utils.parse_size(nc.size)
     # total_size = int(r.headers.get('content-length', len(r.content)))
 
     if os.path.exists(file_path) and os.path.getsize(file_path) < total_size:
@@ -34,14 +38,13 @@ def download(nc, cookies):
             temp_size += len(chunk)
 
             # progress bar
-
             done = int(50 * temp_size / total_size)
             sys.stdout.write("\r" + nc.ncid + ".nc(" + nc.size + ")\t [%s%s] %d%%" % (
                 '█' * done, ' ' * (50 - done), 100 * temp_size / total_size))
             sys.stdout.flush()
 
     f.close()
-    if temp_size == total_size:
+    if temp_size >= total_size:
         return True
     else:
         return False
