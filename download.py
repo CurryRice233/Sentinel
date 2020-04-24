@@ -39,7 +39,7 @@ def download(nc, cookies):
 
             # progress bar
             done = int(50 * temp_size / total_size)
-            sys.stdout.write("\r" + nc.ncid + ".nc(" + nc.size + ")\t [%s%s] %d%%" % (
+            sys.stdout.write("\r" + nc.ncid + ".nc(" + utils.sizeof_fmt(nc.size) + ")\t [%s%s] %d%%" % (
                 '█' * done, ' ' * (50 - done), 100 * temp_size / total_size))
             sys.stdout.flush()
 
