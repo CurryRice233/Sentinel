@@ -69,10 +69,11 @@ def get_files_by_date(search_date, cookies):
             ncid = entry.find('{http://www.w3.org/2005/Atom}id').text
             link = entry.find('{http://www.w3.org/2005/Atom}link').attrib['href']
             size = entry.find('{http://www.w3.org/2005/Atom}str[@name="size"]').text
+            size = parse_size(size)
 
             nc = Nc(title, ncid, link, size, date)
             # print(str(nc))
             result['files'].append(nc)
-            result['total_size'] += parse_size(size)
+            result['total_size'] += size
 
     return result

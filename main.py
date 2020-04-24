@@ -52,7 +52,7 @@ files_to_download = []
 for file in result['files']:
     if file.date.date() == date.date() and file.ncid not in data:
         files_to_download.append(file)
-        total_size += utils.parse_size(file.size)
+        total_size += file.size
 
 print("Will download " + str(len(files_to_download)) + " files with " + utils.sizeof_fmt(total_size) + " (" + str(
     date.date()) + ")")

@@ -14,7 +14,7 @@ def download(nc, cookies):
     if 'content-length' in r.headers:
         total_size = int(r.headers['content-length'])
     else:
-        total_size = utils.parse_size(nc.size)
+        total_size = nc.size
     # total_size = int(r.headers.get('content-length', len(r.content)))
 
     if os.path.exists(file_path) and os.path.getsize(file_path) < total_size:
