@@ -16,9 +16,6 @@ import github
 username = 's5pguest'
 password = 's5pguest'
 
-utils.get_cookies(username, password)
-cookies = pickle.load(open("./cookies", 'rb'))
-
 if len(sys.argv) > 1:
     try:
         date = datetime.datetime.strptime(sys.argv[1], '%Y/%m/%d')
@@ -26,9 +23,10 @@ if len(sys.argv) > 1:
         print("Date Format Error! (format: YYYY/MM/DD)")
         sys.exit()
 else:
-    # date = datetime.datetime(2020, 3, 29)
     date = datetime.datetime.today() - datetime.timedelta(1)  # yesterday
 
+utils.get_cookies(username, password)
+cookies = pickle.load(open("./cookies", 'rb'))
 result = utils.get_files_by_date(date, cookies)
 
 print("\n" + str(date.date()) + ": " + str(result['files'].__len__()) + " files with total size: " + utils.sizeof_fmt(

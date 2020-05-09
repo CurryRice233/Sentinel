@@ -44,7 +44,7 @@ def download(nc, cookies):
             sys.stdout.flush()
 
     f.close()
-    if temp_size >= total_size:
+    if utils.sizeof_fmt(temp_size) == utils.sizeof_fmt(total_size):
         return True
     else:
         return False
